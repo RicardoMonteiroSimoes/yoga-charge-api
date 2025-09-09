@@ -79,21 +79,17 @@ components:
           type: string
           enum:
             - KWH
-            - MWH
-            - GWH
           description: |-
             Defines which unit of measure for the numbers for consumption are in. Note that this defines the numbers
-            for all of the values supplied in `requested_flexibility`.
+            for all of the values supplied in `requested_flexibility`. Can offer more options in the future.
           required: true
           example: KWH
         interval_unit:
           type: string
           enum:
-            - HOURS
             - MINUTES
-            - SECONDS
           description: |-
-            Denotes the unit of time used to calculate the intervals in the request.
+            Denotes the unit of time used to calculate the intervals in the request. Can offer more options in the future.
           required: true
           example: MINUTES
         interval_time:
