@@ -1,0 +1,166 @@
+openapi: 3.1.1
+info:
+  title: Flexibility Provider API
+  description: |-
+    This is the API definition for Flexibility Providers in the YogaCharge research project. This API definition is used
+    in combination with an _Electric Peak Shaver_ service, which communicates with the Flexibility Provider to exchange
+    flexibility requests and plans.
+  contact:
+    url: https://github.com/RicardoMonteiroSimoes/yoga-charge-api
+  version: 0.0.1
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+servers:
+  - url: flexibility-provider.com/api/v0
+    description: beta branch for ongoing API implementations and discussions
+tags:
+  - name: flexibility exchange
+    description: Marks endpoints that deal with the exchange of flexibility
+paths:
+  /flexibility/request:
+    post:
+      tags:
+        - flexibility exchange
+      summary: Endpoint to request control of flexibilities
+      description: |-
+        On this endpoint, it is possible to give out a request for flexibility usage. When an _Electric Grid Shaver_
+        service calculates consumption changes, that are required to shave a peak, they can use this endpoint to ask
+        for flexible loads to be controlled in a specific way. It is important to note that any request to reduce
+        consumption has to be fulfilled otherwise, so requests should include timeslots where it is possible to induce
+        elevated consumption, to compensate for reduced consumption during other timeslots
+      operationId: flexibilityRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/flexibility_request'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flexibility_response'
+        '400':
+          description: Invalid request
+        '422':
+          description: Validation exception
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+components:
+  schemas:
+    error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: |-
+            Describes the error at hand. This should be descriptive enough to enable further actions to be taken.
+          required: true
+    flexibility_request:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date-time
+          description: |-
+            Describes the initial start_date, where this request begins. This does not necessarily have to be for today
+            or tomorrow, but can be for any arbitrary date, as long as it is in the future. Be aware that requests for
+            times that are too close to the _now_ might be ignored, as the flexibility providers might not be able to
+            react quickly enough. *It is expected that the given date-time is in UTC!*
+          required: true
+          example: "2025-09-02T03:00:00Z"
+        unit:
+          type: string
+          enum:
+            - KWH
+            - MWH
+            - GWH
+          description: |-
+            Defines which unit of measure for the numbers for consumption are in. Note that this defines the numbers
+            for all of the values supplied in `requested_flexibility`.
+          required: true
+          example: KWH
+        interval_unit:
+          type: string
+          enum:
+            - HOURS
+            - MINUTES
+            - SECONDS
+          description: |-
+            Denotes the unit of time used to calculate the intervals in the request.
+          required: true
+          example: MINUTES
+        interval_time:
+          type: integer
+          minimum: 1
+          maximum: 60
+          description: |-
+            Defines in combination with the field `interval_unit`, how long a value is valid for. Hence if it is 15
+            and `interval_unit` is `MINUTES`, it is expected that `requested_flexibility` contains 24*60/15 = 96 elements.
+          example: 15
+          required: true
+        request_identifier:
+          type: string
+          format: uuid
+          required: true
+          description: |-
+            Identifies this type of request. This is important to allow for correct grouping of messages,
+            so that further evaluation can be simplified. It is also a key component required to allow for migration
+            towards an async setup.
+        requested_flexibility:
+          type: array
+          items:
+            $ref: "#/components/schemas/consumption_interval"
+            minItems: 1
+          required: true
+          description: |-
+            Contains the exact requests of behavioural change in consumption for a given time slot. The first element
+            has the same value as `start_date`, and each subsequent item is `start_date + i*interval_time`.
+    consumption_interval:
+      type: object
+      properties:
+        interval:
+          type: string
+          format: date-time
+          description: |-
+            The date-time for this entry in the list. Note that the first element should always be the earliest,
+            and that any further elements are to have their `interval` set to the previous `interval + distance`.
+          required: true
+        request:
+          type: integer
+          description: |-
+            Defines a numeric amount of energy to be additionally consumed (positive value) or to reduce the consumed
+            amount by the given value (negative value).
+          required: true
+      example: [
+        {
+          interval: "2025-01-01T00:00:00Z",
+          request: 30
+        },
+        {
+          interval: "2025-01-01T00:15:00Z",
+          request: 0
+        },
+        {
+          interval: "2025-01-01T00:30:00Z",
+          request: -15
+        }
+      ]
+    flexibility_response:
+      $ref: '#/components/schemas/flexibility_request'
+      description: |-
+        The response to the `flexibility_request` shares the same requirements. It is important to note, that the
+        response attributes should be identical to the ones from the request, _except_ the `request` fields in the
+        `requested_flexibility`, which would translate to the actual flexibility the provider can offer.
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+security:
+  - basicAuth: []
