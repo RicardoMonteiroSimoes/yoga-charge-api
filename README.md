@@ -4,7 +4,7 @@ This repository contains discussions, decisions and definitions for the public A
 
 ## Documentation
 
-The root documentatiin can be found [here](doc/index.md) and is based on the [arc42 template](). As decisions are taken upon separate parts of the application, the documentation is extended to include said definitions.
+The root documentatiin can be found [here](doc/README.md) and is based on the [arc42 template](). As decisions are taken upon separate parts of the application, the documentation is extended to include said definitions.
 
 ## Decisions 
 
