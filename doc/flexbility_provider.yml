@@ -28,7 +28,9 @@ paths:
         service calculates consumption changes, that are required to shave a peak, they can use this endpoint to ask
         for flexible loads to be controlled in a specific way. It is important to note that any request to reduce
         consumption has to be fulfilled otherwise, so requests should include timeslots where it is possible to induce
-        elevated consumption, to compensate for reduced consumption during other timeslots
+        elevated consumption, to compensate for reduced consumption during other timeslots. The response has to cover
+        the same time range as the request did. Meaning in case of the request covering only half an hour, the response
+        should do the same.
       operationId: flexibilityRequest
       requestBody:
         content:
