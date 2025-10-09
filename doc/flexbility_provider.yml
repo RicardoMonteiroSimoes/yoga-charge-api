@@ -131,7 +131,8 @@ components:
             and that any further elements are to have their `interval` set to the previous `interval + distance`.
           required: true
         request:
-          type: integer
+          type: number
+          format: double
           description: |-
             Defines a numeric amount of energy to be additionally consumed (positive value) or to reduce the consumed
             amount by the given value (negative value).
@@ -139,15 +140,15 @@ components:
       example: [
         {
           interval: "2025-01-01T00:00:00Z",
-          request: 30
+          request: 30.34
         },
         {
           interval: "2025-01-01T00:15:00Z",
-          request: 0
+          request: 0.884
         },
         {
           interval: "2025-01-01T00:30:00Z",
-          request: -15
+          request: -15.6482
         }
       ]
     flexibility_response:
